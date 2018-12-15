@@ -32,14 +32,13 @@ client = TelegramClient(NAME, API_ID, API_HASH).start(
     bot_token=TOKEN)
 client.flood_sleep_threshold = 24 * 60 * 60
 
-clicked = False
+clicked = asyncio.Event()
 chosen = None
 
 
 async def kick_user():
-    global chosen, clicked
-    clicked = False
-    kick_time = int(time.time()) + DELAY
+    global chosen
+    clicked.clear()
     users = await client.get_participants(GROUP)
     chosen = random.choice(users)
     chosen.name = html.escape(utils.get_display_name(chosen))
@@ -49,24 +48,20 @@ async def kick_user():
                               " automatically kicked</a>".format(
                                   chosen.id, chosen.name),
                               buttons=buttons, parse_mode="html")
-    while True:
-        await asyncio.sleep(1)
-        if clicked:
-            await asyncio.sleep(kick_time - int(time.time()))
-            asyncio.ensure_future(kick_user())
-            return
-        if int(time.time()) >= kick_time:
-            try:
-                await client.send_message(GROUP,
-                                          "<a href='tg://user?id={}'>{} was kicked for being inactive</a>".format(
-                                              chosen.id, chosen.name),
-                                          parse_mode='html')
-                await client(EditBannedRequest(GROUP, chosen.id, RIGHTS))
+    try:
+        await asyncio.wait_for(clicked.wait(), DELAY)
+        asyncio.ensure_future(kick_user())
+    except asyncio.TimeoutError:
+        try:
+            await client.send_message(GROUP,
+                                      "<a href='tg://user?id={}'>{} was kicked for being inactive</a>".format(
+                                          chosen.id, chosen.name),
+                                      parse_mode='html')
+            await client(EditBannedRequest(GROUP, chosen.id, RIGHTS))
 
-            except Exception as e:
-                print(e)
-            asyncio.ensure_future(kick_user())
-            return
+        except Exception as e:
+            print(e)
+        asyncio.ensure_future(kick_user())
 
 
 async def main_func():
@@ -75,10 +70,9 @@ async def main_func():
 
 @client.on(events.CallbackQuery)
 async def save_him(event: events.CallbackQuery.Event):
-    global chosen, clicked
     if event.original_update.user_id == chosen.id:
         await event.answer("Congrats you are saved", 0)
-        clicked = True
+        clicked.set()
         await event.edit("<a href='tg://user?id={}'>Congrats {} you made it !</a>".format(
             chosen.id, chosen.name),
             parse_mode="html")
