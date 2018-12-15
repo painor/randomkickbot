@@ -22,7 +22,7 @@ API_HASH = get_env('TG_API_HASH', 'Enter your API hash: ')
 TOKEN = get_env('TG_TOKEN', 'Enter the bot token: ')
 NAME = TOKEN.split(':')[0]
 GROUP = "telethonofftopic"
-client = TelegramClient("randomkickbot", api_id, api_hash).start(
+client = TelegramClient(NAME, API_ID, API_HASH).start(
     bot_token=TOKEN)
 client.flood_sleep_threshold = 24 * 60 * 60
 
@@ -64,7 +64,7 @@ async def kick_user():
                                               user_to_screw_with["id"], html.escape(user_to_screw_with["name"])),
                                           parse_mode='html')
                 await client(EditBannedRequest(GROUP, user_to_screw_with["id"], rights))
-                
+
             except Exception as e:
                 print(e)
             asyncio.ensure_future(kick_user())
