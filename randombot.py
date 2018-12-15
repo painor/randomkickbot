@@ -69,14 +69,14 @@ async def kick_user():
 
 @client.on(events.CallbackQuery)
 async def save_him(event: events.CallbackQuery.Event):
-    if event.original_update.user_id == chosen.id:
+    if event.sender_id == chosen.id:
         await event.answer("Congrats you are saved", 0)
         clicked.set()
-        await event.edit("<a href='tg://user?id={}'>Congrats {} you made it !</a>".format(
-            chosen.id, chosen.name),
-            parse_mode="html")
+        await event.edit(
+            "<a href='tg://user?id={}'>Congrats {} you made it!</a>".format(
+            chosen.id, chosen.name), parse_mode="html")
     else:
-        await event.answer("Who are you again ? ", 0)
+        await event.answer("Who are you again?", 0)
 
 
 loop = asyncio.get_event_loop()
