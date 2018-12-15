@@ -36,36 +36,35 @@ clicked = asyncio.Event()
 chosen = None
 
 
-async def kick_user():
+async def kick_users():
     global chosen
-    clicked.clear()
-    users = await client.get_participants(GROUP)
-    chosen = random.choice(users)
-    chosen.name = html.escape(utils.get_display_name(chosen))
-    buttons = Button.inline('click me to stay', b'alive')
-    await client.send_message(GROUP,
-                              "<a href='tg://user?id={}'>{} : you have 1 day to click on this button or you will be"
-                              " automatically kicked</a>".format(
-                                  chosen.id, chosen.name),
-                              buttons=buttons, parse_mode="html")
-    try:
-        await asyncio.wait_for(clicked.wait(), DELAY)
-        asyncio.ensure_future(kick_user())
-    except asyncio.TimeoutError:
+    while True:
+        clicked.clear()
+        users = await client.get_participants(GROUP)
+        chosen = random.choice(users)
+        chosen.name = html.escape(utils.get_display_name(chosen))
         try:
-            await client.send_message(GROUP,
-                                      "<a href='tg://user?id={}'>{} was kicked for being inactive</a>".format(
-                                          chosen.id, chosen.name),
-                                      parse_mode='html')
-            await client(EditBannedRequest(GROUP, chosen.id, RIGHTS))
-
+            await kick_user()
         except Exception as e:
             print(e)
-        asyncio.ensure_future(kick_user())
 
 
-async def main_func():
-    asyncio.ensure_future(kick_user())
+async def kick_user():
+    await client.send_message(
+        GROUP,
+        "<a href='tg://user?id={}'>{}: you have 1 day to click this button or"
+        " you will be automatically kicked</a>".format(chosen.id, chosen.name),
+        buttons=Button.inline('click me to stay', b'alive'), parse_mode="html"
+    )
+    try:
+        await asyncio.wait_for(clicked.wait(), DELAY)
+    except asyncio.TimeoutError:
+        await client.send_message(
+            GROUP,
+            "<a href='tg://user?id={}'>{} was kicked for being inactive</a>"
+            .format(chosen.id, chosen.name), parse_mode='html'
+        )
+        await client(EditBannedRequest(GROUP, chosen.id, RIGHTS))
 
 
 @client.on(events.CallbackQuery)
@@ -80,5 +79,6 @@ async def save_him(event: events.CallbackQuery.Event):
         await event.answer("Who are you again ? ", 0)
 
 
-asyncio.get_event_loop().run_until_complete(main_func())
+loop = asyncio.get_event_loop()
+loop.create_task(kick_users())
 client.run_until_disconnected()
