@@ -43,10 +43,13 @@ async def kick_users():
         users = await client.get_participants(GROUP)
         chosen = random.choice(users)
         chosen.name = html.escape(utils.get_display_name(chosen))
+        start = time.time()
         try:
             await kick_user()
         except Exception as e:
             print(e)
+        took = time.time() - start
+        await asyncio.sleep(DELAY - took)
 
 
 async def kick_user():
