@@ -18,6 +18,7 @@ try:
     TOKEN = os.environ['TG_TOKEN']
 except KeyError as e:
     print(e.args[0], 'missing from environment variables')
+    exit(0)
 
 NAME = TOKEN.split(':')[0]
 GROUP = "telethonofftopic"
