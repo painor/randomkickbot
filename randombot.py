@@ -12,11 +12,6 @@ from telethon.tl.types import ChannelBannedRights
 
 logging.basicConfig(level=logging.INFO)
 
-rights = ChannelBannedRights(
-    until_date=None,
-    view_messages=True
-)
-
 try:
     API_ID = os.environ['TG_API_ID']
     API_HASH = os.environ['TG_API_HASH']
@@ -26,11 +21,17 @@ except KeyError as e:
 
 NAME = TOKEN.split(':')[0]
 GROUP = "telethonofftopic"
+RIGHTS = ChannelBannedRights(
+    until_date=None,
+    view_messages=True
+)
+
 client = TelegramClient(NAME, API_ID, API_HASH).start(
     bot_token=TOKEN)
 client.flood_sleep_threshold = 24 * 60 * 60
 
 clicked = False
+user_to_screw_with = 0
 
 
 async def get_users_list():
@@ -39,12 +40,8 @@ async def get_users_list():
     return users
 
 
-user_to_screw_with = 0
-
-
 async def kick_user():
-    global user_to_screw_with
-    global clicked
+    global user_to_screw_with, clicked
     clicked = False
     kick_time = int(time.time()) + delay
     users = await get_users_list()
@@ -67,7 +64,7 @@ async def kick_user():
                                           "<a href='tg://user?id={}'>{} was kicked for being inactive</a>".format(
                                               user_to_screw_with["id"], html.escape(user_to_screw_with["name"])),
                                           parse_mode='html')
-                await client(EditBannedRequest(GROUP, user_to_screw_with["id"], rights))
+                await client(EditBannedRequest(GROUP, user_to_screw_with["id"], RIGHTS))
 
             except Exception as e:
                 print(e)
@@ -81,8 +78,7 @@ async def main_func():
 
 @client.on(events.CallbackQuery)
 async def save_him(event: events.CallbackQuery.Event):
-    global clicked
-    global user_to_screw_with
+    global user_to_screw_with, clicked
     if event.original_update.user_id == user_to_screw_with["id"]:
         await event.answer("Congrats you are saved", 0)
         clicked = True
