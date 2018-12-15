@@ -22,6 +22,7 @@ except KeyError as e:
 
 NAME = TOKEN.split(':')[0]
 GROUP = "telethonofftopic"
+DELAY = 24 * 60 * 60
 RIGHTS = ChannelBannedRights(
     until_date=None,
     view_messages=True
@@ -38,7 +39,7 @@ user_to_screw_with = None
 async def kick_user():
     global user_to_screw_with, clicked
     clicked = False
-    kick_time = int(time.time()) + delay
+    kick_time = int(time.time()) + DELAY
     users = await client.get_participants(GROUP)
     user_to_screw_with = random.choice(users)
     user_to_screw_with.name = html.escape(utils.get_display_name(p))
