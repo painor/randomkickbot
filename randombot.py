@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import html
 import logging
 import os
@@ -23,10 +24,6 @@ except KeyError as e:
 NAME = TOKEN.split(':')[0]
 GROUP = "telethonofftopic"
 DELAY = 24 * 60 * 60
-RIGHTS = ChannelBannedRights(
-    until_date=None,
-    view_messages=True
-)
 
 client = TelegramClient(NAME, API_ID, API_HASH).start(
     bot_token=TOKEN)
@@ -67,7 +64,10 @@ async def kick_user():
             "<a href='tg://user?id={}'>{} was kicked for being inactive</a>"
             .format(chosen.id, chosen.name), parse_mode='html'
         )
-        await client(EditBannedRequest(GROUP, chosen.id, RIGHTS))
+        await client(EditBannedRequest(GROUP, chosen.id, ChannelBannedRights(
+            until_date=datetime.timedelta(minutes=1),
+            view_messages=True
+        )))
 
 
 @client.on(events.CallbackQuery)
