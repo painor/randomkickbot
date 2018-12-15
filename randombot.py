@@ -1,6 +1,7 @@
 import asyncio
 import html
 import logging
+import os
 import random
 import time
 
@@ -10,16 +11,19 @@ from telethon.tl.functions.channels import EditBannedRequest
 from telethon.tl.types import ChannelBannedRights
 
 logging.basicConfig(level=logging.INFO)
-api_id = 17349
-api_hash = "344583e45741c457fe1862106095a5eb"
-delay = 24 * 60 * 60
+
 rights = ChannelBannedRights(
     until_date=None,
     view_messages=True
 )
-API_ID = get_env('TG_API_ID', 'Enter your API ID: ', int)
-API_HASH = get_env('TG_API_HASH', 'Enter your API hash: ')
-TOKEN = get_env('TG_TOKEN', 'Enter the bot token: ')
+
+try:
+    API_ID = os.environ['TG_API_ID']
+    API_HASH = os.environ['TG_API_HASH']
+    TOKEN = os.environ['TG_TOKEN']
+except KeyError as e:
+    print(e.args[0], 'missing from environment variables')
+
 NAME = TOKEN.split(':')[0]
 GROUP = "telethonofftopic"
 client = TelegramClient(NAME, API_ID, API_HASH).start(
