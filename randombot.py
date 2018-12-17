@@ -46,7 +46,9 @@ async def kick_users():
         except Exception as e:
             print(e)
         took = time.time() - start
-        await asyncio.sleep(DELAY - took)
+        wait_after_clicked = 8 * 60 * 60 - took
+        if wait_after_clicked > 0:
+            await asyncio.sleep(DELAY - took)
 
 
 async def kick_user():
